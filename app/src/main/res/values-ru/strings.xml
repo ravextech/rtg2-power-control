@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Режим запуска RT-G2</string>
+    <string name="tagline">Поведение приставки после возврата питания</string>
+    <string name="current_mode">ТЕКУЩИЙ РЕЖИМ</string>
+    <string name="checking">Проверяем приставку…</string>
+    <string name="build">сборка</string>
+    <string name="choose_mode">После отключения электричества</string>
+    <string name="quiet_title">Тихий запуск</string>
+    <string name="normal_title">Обычный запуск</string>
+    <string name="quiet_card">Тихая загрузка и сон. Пробуждение с пульта.</string>
+    <string name="normal_card">Обычная загрузка. Возможно включение ТВ через HDMI-CEC.</string>
+    <string name="quiet_detail">После возврата питания Android тихо загружается и переходит в сон. Для включения нажмите питание на пульте.</string>
+    <string name="normal_detail">После возврата питания приставка запускается обычным образом и может включить подключённый телевизор.</string>
+    <string name="no_immediate_reboot">Сохранение режима не перезагружает приставку. Он сработает при следующем холодном запуске.</string>
+    <string name="refresh">Проверить состояние</string>
+    <string name="about">О приложении</string>
+    <string name="unsupported_title">Прошивка пока не поддерживается</string>
+    <string name="unsupported_detail">Изменения заблокированы. Версия 1.0 поддерживает только RockTek RT-G2, Android 14, сборку 7475 с точным совпадением проверенной прошивки.</string>
+    <string name="unknown_title">Неизвестная конфигурация загрузки</string>
+    <string name="unknown_detail">Изменения заблокированы: загрузочный сценарий отличается от проверенного. Настройки не перезаписаны.</string>
+    <string name="confirm_quiet">Включить тихий запуск?</string>
+    <string name="confirm_quiet_body">После возврата питания Android будет загружаться в сон без обычной активации ТВ. Приставку можно разбудить пультом. Сейчас перезагрузки не будет.</string>
+    <string name="confirm_normal">Вернуть обычный запуск?</string>
+    <string name="confirm_normal_body">Будет восстановлен исходный сценарий сборки 7475. После возврата питания приставка запустится обычным образом и может включить ТВ. Сейчас перезагрузки не будет.</string>
+    <string name="cancel">Отмена</string>
+    <string name="apply">Сохранить режим</string>
+    <string name="saved">Режим сохранён и проверен</string>
+    <string name="already_selected">Этот режим уже выбран</string>
+    <string name="error_title">Не удалось проверить конфигурацию</string>
+    <string name="error_detail">Если ошибка возникла при сохранении, не отключайте питание. Оставьте приставку включённой и проверьте подробности перед повторной попыткой.</string>
+    <string name="supported_build">Проверенная прошивка:</string>
+    <string name="about_body">Два режима запуска RockTek RT-G2. Использует штатную службу SystemControl без root. Без доступа к сети и фоновой службы. Тихий запуск загружает Android в сон; процессор при подаче питания всё равно запускается. Удаление приложения не отменяет выбранный режим. Обновление прошивки может сбросить или изменить эту настройку.</string>
+</resources>

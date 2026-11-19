@@ -1,0 +1,11 @@
+build/
+.cache/
+.signing/
+*.p12
+*.jks
+*.keystore
+*.apk
+*.idsig
+*.class
+__pycache__/
+.DS_Store

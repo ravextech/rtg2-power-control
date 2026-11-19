@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">RT-G2 Power Control</string>
+    <string name="tagline">Choose what happens when power returns</string>
+    <string name="current_mode">CURRENT MODE</string>
+    <string name="checking">Checking the device…</string>
+    <string name="build">build</string>
+    <string name="choose_mode">After a power outage</string>
+    <string name="quiet_title">Quiet start</string>
+    <string name="normal_title">Normal start</string>
+    <string name="quiet_card">Boot quietly and stay asleep. Wake with the remote.</string>
+    <string name="normal_card">Start normally. The box may turn on the TV over HDMI-CEC.</string>
+    <string name="quiet_detail">When power returns, Android boots quietly into sleep. Press Power on the remote to wake the box.</string>
+    <string name="normal_detail">When power returns, the box starts normally and may turn on the connected TV.</string>
+    <string name="no_immediate_reboot">Saving a mode does not restart the box. It applies at the next cold start.</string>
+    <string name="refresh">Check status</string>
+    <string name="about">About</string>
+    <string name="unsupported_title">Unsupported firmware</string>
+    <string name="unsupported_detail">Changes are disabled. Version 1.0 supports only RockTek RT-G2, Android 14, build 7475 with the exact verified firmware.</string>
+    <string name="unknown_title">Unrecognized boot configuration</string>
+    <string name="unknown_detail">Changes are disabled because the boot script differs from the verified profile. No settings have been overwritten.</string>
+    <string name="confirm_quiet">Enable quiet start?</string>
+    <string name="confirm_quiet_body">After power returns, Android will boot into sleep without its usual TV activation. You can wake the box with the remote. The box will not restart now.</string>
+    <string name="confirm_normal">Restore normal start?</string>
+    <string name="confirm_normal_body">Restore the original boot script for build 7475. After power returns, the box will start normally and may turn on the TV. The box will not restart now.</string>
+    <string name="cancel">Cancel</string>
+    <string name="apply">Save mode</string>
+    <string name="saved">Mode saved and verified</string>
+    <string name="already_selected">This mode is already selected</string>
+    <string name="error_title">Could not verify the configuration</string>
+    <string name="error_detail">Do not disconnect power if this happened while saving. Keep the box running and check the details below before trying again.</string>
+    <string name="supported_build">Verified firmware:</string>
+    <string name="about_body">Two startup modes for RockTek RT-G2. Uses the firmware’s SystemControl service without root. No network access or background service. Quiet start boots Android into sleep; it does not prevent the processor from starting. Uninstalling this app does not undo the selected mode. Future firmware updates may reset or change this configuration.</string>
+</resources>
