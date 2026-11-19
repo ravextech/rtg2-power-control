@@ -61,7 +61,7 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams titlesParams = new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1); titlesParams.leftMargin=dp(20);
         titles.addView(text(getString(R.string.app_name),30,WHITE,true));
         titles.addView(text(getString(R.string.tagline),16,MUTED,false));header.addView(titles,titlesParams);
-        TextView version=text("v1.0.0",14,MUTED,false);header.addView(version);root.addView(header);
+        TextView version=text("v1.1.0",14,MUTED,false);header.addView(version);root.addView(header);
 
         LinearLayout card = new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(dp(28),dp(22),dp(28),dp(22));card.setBackground(panel(Color.rgb(23,37,49),18));
         LinearLayout.LayoutParams cardParams=new LinearLayout.LayoutParams(-1,-2);cardParams.topMargin=dp(26);root.addView(card,cardParams);
@@ -111,7 +111,7 @@ public final class MainActivity extends Activity {
         quietCard.setEnabled(!value&&supported);normalCard.setEnabled(!value&&supported);
     }
     private BootModeController controller() throws Exception {
-        if(controller==null) controller=new BootModeController(Build.FINGERPRINT,asset("switch_bootmode.original.txt"),asset("switch_bootmode.quiet.txt"),new VendorEnvironment(),this::backupOriginal);
+        if(controller==null) controller=new BootModeController(new VendorEnvironment(),this::backupBeforeWrite);
         return controller;
     }
     private void refreshState(final boolean focus) {
@@ -127,7 +127,6 @@ public final class MainActivity extends Activity {
         int title,description;
         if(next==BootModeController.Mode.QUIET){title=R.string.quiet_title;description=R.string.quiet_detail;}
         else if(next==BootModeController.Mode.NORMAL){title=R.string.normal_title;description=R.string.normal_detail;}
-        else if(next==BootModeController.Mode.UNSUPPORTED_FIRMWARE){title=R.string.unsupported_title;description=R.string.unsupported_detail;}
         else{title=R.string.unknown_title;description=R.string.unknown_detail;}
         status.setText(title);detail.setText(description);setBusy(false);
     }
@@ -135,9 +134,11 @@ public final class MainActivity extends Activity {
         if(busy)return;
         if(desired==mode){Toast.makeText(this,R.string.already_selected,Toast.LENGTH_SHORT).show();return;}
         if(mode!=BootModeController.Mode.NORMAL&&mode!=BootModeController.Mode.QUIET)return;
+        String confirmation=getString(desired==BootModeController.Mode.QUIET?R.string.confirm_quiet_body:R.string.confirm_normal_body);
+        if(!BootModeController.TESTED_FIRMWARE.equals(Build.FINGERPRINT))confirmation+="\n\n"+getString(R.string.other_firmware_confirmation);
         AlertDialog dialog=new AlertDialog.Builder(this)
             .setTitle(desired==BootModeController.Mode.QUIET?R.string.confirm_quiet:R.string.confirm_normal)
-            .setMessage(desired==BootModeController.Mode.QUIET?R.string.confirm_quiet_body:R.string.confirm_normal_body)
+            .setMessage(confirmation)
             .setNegativeButton(R.string.cancel,null).setPositiveButton(R.string.apply,(d,w)->apply(desired)).create();
         dialog.setOnShowListener(d -> dialog.getButton(DialogInterface.BUTTON_NEGATIVE).requestFocus());dialog.show();
     }
@@ -155,19 +156,21 @@ public final class MainActivity extends Activity {
         new AlertDialog.Builder(this).setTitle(R.string.error_title).setMessage(getString(R.string.error_detail)+"\n\n"+message).setPositiveButton(android.R.string.ok,null).show();
     }
     private void showAbout() {
-        String info=getString(R.string.about_body)+"\n\n"+getString(R.string.supported_build)+"\n"+BootModeController.FINGERPRINT+"\n\nhttps://github.com/ravextech/rtg2-power-control";
-        new AlertDialog.Builder(this).setTitle(getString(R.string.app_name)+" · 1.0.0").setMessage(info).setPositiveButton(android.R.string.ok,null).show();
+        String info=getString(R.string.about_body)+"\n\n"+getString(R.string.supported_build)+"\n"+BootModeController.TESTED_FIRMWARE+"\n\nhttps://github.com/ravextech/rtg2-power-control";
+        new AlertDialog.Builder(this).setTitle(getString(R.string.app_name)+" · 1.1.0").setMessage(info).setPositiveButton(android.R.string.ok,null).show();
     }
     private void ui(Runnable task) {runOnUiThread(()->{if(!isFinishing()&&!isDestroyed())task.run();});}
-    private String asset(String name) throws Exception {try(InputStream in=getAssets().open(name)){return read(in);}}
     private static String read(InputStream in) throws Exception {
         ByteArrayOutputStream out=new ByteArrayOutputStream();byte[] b=new byte[4096];int n;while((n=in.read(b))!=-1)out.write(b,0,n);return new String(out.toByteArray(),"UTF-8");
     }
-    private void backupOriginal(String value) throws Exception {
-        File backup=new File(getFilesDir(),"switch_bootmode.original.txt");
+    private void backupBeforeWrite(String value) throws Exception {
+        File directory=new File(getFilesDir(),"bootenv-backups");
+        if(!directory.isDirectory()&&!directory.mkdirs())throw new IOException("Could not create backup directory");
+        String name=BootModeController.sha256(value);
+        File backup=new File(directory,name+".txt");
         if(backup.exists()){try(InputStream in=new FileInputStream(backup)){if(!value.equals(read(in)))throw new IOException("Existing backup differs");}return;}
-        File temporary=new File(getFilesDir(),"switch_bootmode.original.tmp");
+        File temporary=new File(directory,name+".tmp");
         try(FileOutputStream out=new FileOutputStream(temporary)){out.write(value.getBytes("UTF-8"));out.getFD().sync();}
-        if(!temporary.renameTo(backup))throw new IOException("Could not save original boot script");
+        if(!temporary.renameTo(backup))throw new IOException("Could not save the previous boot script");
     }
 }

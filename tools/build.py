@@ -52,8 +52,9 @@ def tests():
     classes.mkdir(parents=True, exist_ok=True)
     run(java_tool("javac"), "--release", "8", "-Xlint:-options", "-d", classes,
         ROOT / "app/src/main/java/io/github/ravextech/rtg2powercontrol/BootModeController.java",
+        ROOT / "app/src/main/java/io/github/ravextech/rtg2powercontrol/BootScript.java",
         ROOT / "tests/BootModeControllerTest.java")
-    run(java_tool("java"), "-cp", classes, "BootModeControllerTest", ROOT / "app/src/main/assets")
+    run(java_tool("java"), "-cp", classes, "BootModeControllerTest", ROOT / "tests/fixtures")
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -92,7 +93,7 @@ def main():
     run(aapt, "compile", "--dir", ROOT / "app/src/main/res", "-o", resources)
     unsigned = BUILD / "unsigned.apk"
     run(aapt, "link", "-I", android, "--manifest", ROOT / "app/src/main/AndroidManifest.xml",
-        "-A", ROOT / "app/src/main/assets", "--java", generated, "--auto-add-overlay", "-o", unsigned, resources)
+        "--java", generated, "--auto-add-overlay", "-o", unsigned, resources)
     sources = sorted((ROOT / "app/src/main/java").rglob("*.java")) + sorted(generated.rglob("*.java"))
     run(java_tool("javac"), "--release", "8", "-Xlint:-options", "-cp", android, "-d", classes, *sources)
     run(java_tool("java"), "-cp", r8, "com.android.tools.r8.D8", "--min-api", "23", "--lib", android,
@@ -111,7 +112,7 @@ def main():
                 "-storetype", "PKCS12", "-storepass:file", password_file, "-keyalg", "RSA", "-keysize", "2048",
                 "-validity", "10000", "-dname", "CN=RTG2 Power Control Debug")
     run(java_tool("javac"), "-cp", apksig, "-d", signer_classes, ROOT / "tools/SignApk.java")
-    output = BUILD / ("RTG2-Power-Control-1.0.0" + ("" if options.release else "-debug") + ".apk")
+    output = BUILD / ("RTG2-Power-Control-1.1.0" + ("" if options.release else "-debug") + ".apk")
     run(java_tool("java"), "-cp", str(signer_classes) + os.pathsep + str(apksig), "SignApk",
         keystore, password_file, alias, unsigned, output)
     digest = hashlib.sha256(output.read_bytes()).hexdigest()

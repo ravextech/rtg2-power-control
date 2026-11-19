@@ -7,25 +7,37 @@ An Android TV app for choosing how a **RockTek RT-G2** starts when mains power r
 ![TV app](docs/screenshot.png)
 
 - **Quiet start:** Android boots quietly and enters sleep. Wake the box with the remote; normal HDMI-CEC wake remains available.
-- **Normal start:** restore the reviewed original startup script. The box may turn on the TV through HDMI-CEC.
+- **Normal start:** use the ordinary cold-start branch in the device’s own script. The box may turn on the TV through HDMI-CEC.
 - TV launcher banner and icon, D-pad navigation, Russian and English UI.
 - No root, Internet permission, background service, or automatic reboot.
-- Saving requires on-screen confirmation, an original-script backup, and readback verification.
+- Saving requires on-screen confirmation, a snapshot of the actual current script, and readback verification.
 
 Quiet start still boots Android before it sleeps. It does **not** prevent the processor from starting when power is supplied.
 
-## Compatibility
+## Automatic compatibility check (1.1+)
 
-Version 1.0 is deliberately limited to this exact verified firmware:
+There is **no firmware-number or device-fingerprint allowlist**. On every status read and immediately before saving, the app reads the device’s own `switch_bootmode` through the vendor API and parses its structure.
 
-| Item | Supported value |
-| --- | --- |
-| Model | RockTek RT-G2 / SEI804RT / YYJ |
-| Android | Android TV 14 |
-| Firmware | 7475 / `UKG3.250803.001.7475` |
-| Fingerprint | `RockTek/SEI804RT/YYJ:14/UKG3.250803.001/7475:user/release-keys` |
+Writes are enabled only when all of these checks pass:
 
-The current `switch_bootmode` must also match either the exact reviewed original or this app’s exact quiet-start profile. Other devices, firmware builds, and unexpected scripts are read-only/unsupported. Do not remove these checks to try the app on a similar box. Additional profiles need their own analysis and hardware tests.
+- The vendor library/service can be reached and the variable can be read completely.
+- The script is a standalone `get_rebootmode` dispatcher with balanced supported `if`/`elif`/`else` structure.
+- There is exactly one unambiguous `cold_boot` branch and one native `quiescent` branch, both in reboot-mode conditions.
+- The native quiet branch contains the recognized `bootconfig` quiet-start commands and `run try_auto_burn`.
+- The cold branch is either the ordinary `run try_auto_burn` branch or this app’s exact reversible quiet prefix followed by that command.
+- The resulting script fits safely below the vendor API’s size limit.
+
+The parser handles whitespace, line breaks, comments, quoted literals, and `elif`. It deliberately refuses unsupported shell constructs, ambiguous branches, different quiet mechanisms, extra cold-branch commands, and potentially truncated input. It changes only the cold branch in the **actual device script**, preserving other firmware-specific commands byte for byte. No factory script is imported from another firmware.
+
+Read access alone cannot prove write access. There are **no test writes** when opening the app. On a confirmed mode change, the current value is backed up, re-read to detect concurrent changes, written, and read back. A denied or ineffective write is reported as an error rather than success.
+
+**Physical validation remains limited to RockTek RT-G2, Android TV 14, build 7475**, fingerprint:
+
+```text
+RockTek/SEI804RT/YYJ:14/UKG3.250803.001/7475:user/release-keys
+```
+
+Another firmware with the same recognized structure can now be configured, but structural recognition does not prove its complete boot/wake/HDMI behavior. The confirmation dialog identifies firmware not physically tested by this project. Test power-loss and remote wake behavior on each additional firmware. Version 1.0 had the stricter exact-fingerprint gate.
 
 ## Install and use
 
@@ -33,7 +45,7 @@ The current `switch_bootmode` must also match either the exact reviewed original
 2. Transfer it to the box and open it with an APK installer, or install with ADB:
 
    ```sh
-   adb install -r RTG2-Power-Control-1.0.0.apk
+   adb install -r RTG2-Power-Control-1.1.0.apk
    ```
 
 3. Open **RT-G2 Power Control** in the TV’s app list (Russian name: **Режим запуска RT-G2**).
@@ -44,7 +56,7 @@ You only need ADB for optional installation; opening the app and switching modes
 
 ## Restore normal startup
 
-Open the app, select **Normal start**, and confirm. This restores the embedded reviewed original script after checking the current firmware and script. The app verifies the result before reporting success.
+Open the app, select **Normal start**, and confirm. This removes only the app’s exact quiet prefix from the device’s cold branch. A normal → quiet → normal round-trip restores the original script byte for byte. The app verifies the result before reporting success.
 
 Uninstalling the APK does **not** reset bootenv. Restore Normal start first if you want to remove the behavior. Keep the signed APK so it can be reinstalled for restoration. If an error occurs during saving, keep power connected and inspect the error before rebooting. Firmware updates may reset the setting or make the profile unsupported.
 
@@ -63,7 +75,7 @@ Only `ubootenv.var.switch_bootmode` is written. The quiet profile changes one br
 
 These commands already exist in the same firmware’s stock `quiescent` branch. Recovery, update, fastboot, and other branches are retained. No bootloader image, system partition, boot image, or SELinux policy is flashed or patched by the APK.
 
-The firmware’s Android framework recognizes `ro.boot.quiescent=1`, sleeps after boot, and suppresses normal boot-time HDMI-CEC activation. The app reads back the complete script after saving. A private backup of the reviewed original is synced to app storage before the first write; the same original is also embedded in the APK for reinstalls.
+The firmware’s Android framework recognizes `ro.boot.quiescent=1`, sleeps after boot, and suppresses normal boot-time HDMI-CEC activation. The app reads back the complete script after saving. Before each real write, the actual previous value is synced to private app storage in `bootenv-backups/<SHA-256>.txt`; different firmware values get separate snapshots. Opening or refreshing the app performs no writes. Removing the app deletes these private snapshots but does not reset bootenv. Reinstalling 1.1 can recognize and reverse the exact patch produced by 1.0 or 1.1, provided the rest of the dispatcher still passes validation.
 
 The exported launcher activity ignores mode-changing intent extras. All mode changes originate from the app’s confirmation dialog.
 
@@ -73,7 +85,7 @@ The startup profile was verified on physical RT-G2 hardware with build 7475 on *
 
 The GUI release is additionally checked on that device for TV launcher visibility, D-pad interaction, cancellation, read-only refresh, and mode changes in both directions. These observations cover the tested box and firmware, not every unit or future OTA.
 
-The controller’s host tests cover firmware gating, script identity, the exact patch boundary, backup failure, readback failure, stale state, idempotency, restore, and refusal of invalid profiles. See [tests](tests/BootModeControllerTest.java).
+The 39 controller/parser checks cover cross-firmware command preservation, exact inverses, whitespace and quoted lookalikes, ambiguous or malformed dispatchers, unreachable branches, length limits, missing/read-only APIs, backup/readback failure, concurrent changes, idempotency, and migration from the 1.0 profile. See [tests](tests/BootModeControllerTest.java).
 
 ## Build
 
